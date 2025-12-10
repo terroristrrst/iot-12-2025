@@ -2,20 +2,42 @@ import os
 from lab6_logger import logged
 
 class FileNotFound(Exception):
+    """Exception raised when the specified file does not exist."""
     pass
 
 class FileCorrupted(Exception):
+    """Exception raised when file operations fail due to corruption or read/write errors."""
     pass
 
 class FileHandler:
+    """Utility class for performing safe read/write/edit operations on a text file."""
+
     @logged(exception=FileNotFound)
     def __init__(self, file_path):
+        """
+        Initialize FileHandler with a path to a file.
+
+        Parameters:
+            file_path (str): Path to the file that will be managed.
+
+        Raises:
+            FileNotFound: If the file does not exist.
+        """
         self.file_path = file_path
         if not os.path.exists(file_path):
             raise FileNotFound(f"File '{file_path}' not found")
 
     @logged(exception=FileCorrupted)
     def read(self):
+        """
+        Read the entire file and return a list of its lines.
+
+        Returns:
+            list[str]: Lines of the file.
+
+        Raises:
+            FileCorrupted: If the file cannot be read.
+        """
         try:
             with open(self.file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
@@ -25,6 +47,15 @@ class FileHandler:
 
     @logged(exception=FileCorrupted)
     def write(self, text):
+        """
+        Rewrite the file with new text, replacing all existing content.
+
+        Parameters:
+            text (str): New content to write into the file.
+
+        Raises:
+            FileCorrupted: If the file cannot be written.
+        """
         try:
             with open(self.file_path, "w", encoding="utf-8") as f:
                 f.write(text)
@@ -33,14 +64,33 @@ class FileHandler:
 
     @logged(exception=FileCorrupted)
     def add(self, text):
+        """
+        Append text to the end of the file. Adds a newline if file is not empty.
+
+        Parameters:
+            text (str): Text to append.
+
+        Raises:
+            FileCorrupted: If the file cannot be appended.
+        """
         try:
             with open(self.file_path, "a", encoding="utf-8") as f:
-                f.write("\n" + text)
+                lines = self.read()
+                if not lines:
+                    f.write(text)
+                else:
+                    f.write("\n" + text)
         except Exception as e:
             raise FileCorrupted(f"Cannot append to file: {e}")
 
     @logged(exception=FileCorrupted)
     def clear(self):
+        """
+        Delete all content from the file.
+
+        Raises:
+            FileCorrupted: If the file cannot be cleared.
+        """
         try:
             with open(self.file_path, "w", encoding="utf-8") as f:
                 f.write("")
@@ -49,6 +99,16 @@ class FileHandler:
 
     @logged(exception=FileCorrupted)
     def delete_line(self, line_num):
+        """
+        Delete a specific line from the file.
+
+        Parameters:
+            line_num (int): Line number to delete (1-based index).
+
+        Raises:
+            IndexError: If the line number is outside the file's range.
+            FileCorrupted: If deletion fails.
+        """
         try:
             lines = self.read()
             if 1 <= line_num <= len(lines):
@@ -61,6 +121,17 @@ class FileHandler:
 
     @logged(exception=FileCorrupted)
     def edit_line(self, line_num, new_text):
+        """
+        Replace the text of a specific line in the file.
+
+        Parameters:
+            line_num (int): Line number to edit (1-based index).
+            new_text (str): New text to insert.
+
+        Raises:
+            IndexError: If the line number is invalid.
+            FileCorrupted: If the edit operation fails.
+        """
         try:
             lines = self.read()
             if 1 <= line_num <= len(lines):
@@ -72,6 +143,9 @@ class FileHandler:
             raise FileCorrupted(f"Cannot edit line: {e}")
 
 def show_help():
+    """
+    Print a list of available user commands for the word processor.
+    """
     print("\nAvailable commands:")
     print(" read   - read file with line numbers")
     print(" write  - rewrite file completely")
@@ -83,9 +157,14 @@ def show_help():
     print(" exit   - exit program")
 
 def main():
+    """
+    Main program loop for the simple text-based word processor.
+    Handles file initialization, user input, and command execution.
+    """
     print("Basic Word Processor")
     file_path = "lab6_file.txt"
     
+    # Ensure file exists or ask user to create one
     if not os.path.exists(file_path):
         print(f"File '{file_path}' not found.")
         choice = input("Do you want to create a new file? (y/n): ").strip().lower()
@@ -104,6 +183,7 @@ def main():
     fh = FileHandler(file_path)
     show_help()
 
+    # Main input loop
     while True:
         command = input("\nInput Command: ").strip().lower()
 
