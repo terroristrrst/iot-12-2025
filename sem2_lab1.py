@@ -1,16 +1,18 @@
-def find_kth_largest(nums, k):
-    n = len(nums)
+def find_kth_largest(arr, k):
+    if k < 1 or k > len(arr):
+        raise ValueError("Некоректне значення k")
 
-    if k > n or k <= 0:
-        raise ValueError("k має бути в межах розміру масиву")
+    last_max = float('inf')
+    
+    for _ in range(k):
+        current_max = None
+        
+        for num in arr:
+            if num < last_max:
+                if current_max is None or num > current_max:
+                    current_max = num
+        
+        last_max = current_max
 
-    indexed_nums = []
-
-    for i in range(n):
-        indexed_nums.append((nums[i], i))
-
-    indexed_nums.sort(reverse=True)
-
-    value, index = indexed_nums[k - 1]
-
-    return value, index
+    index = arr.index(last_max)
+    return last_max, index
